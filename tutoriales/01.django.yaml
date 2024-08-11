@@ -1,5 +1,9 @@
 # 01.django.yaml
 steps:
+  - step: "Crear la carpeta de trabajo"
+    command: "mkdir sandbox/01 && cd sanbox/01"
+    validate:
+      - ""
   - step: "Crear un nuevo proyecto de Django"
     command: "django-admin startproject myproject"
     validate:
@@ -18,6 +22,6 @@ steps:
       - "myproject/myproject/settings.py"
     validation_script: |
       import re
-      with open('myproject/myproject/settings.py') as f:
+      with open('sandbox/01/myproject/myproject/settings.py') as f:
         content = f.read()
-        assert re.search(r"'myapp'", content), "myapp no se agregó a INSTALLED_APPS"
+        assert re.search(r'["\']myapp["\']', content), "myapp no se agregó a INSTALLED_APPS"
