@@ -1,0 +1,60 @@
+steps:
+  - step: "Crear la carpeta de trabajo"
+    command: "mkdir sandbox/04 && cd sandbox/04"
+    validate:
+      - ""
+
+  - step: "Crear un nuevo proyecto de Django"
+    command: "django-admin startproject myproject"
+    validate:
+      - "myproject/manage.py"
+      - "myproject/myproject/settings.py"
+
+  - step: "Crear una nueva aplicación llamada 'api'"
+    command: "cd sandbox/04/myproject && python manage.py startapp api"
+    validate:
+      - "myproject/api/models.py"
+      - "myproject/api/views.py"
+
+  - step: "Crear una vista que devuelva JSON en 'api'"
+    instructions: |
+      Abre el archivo `myproject/api/views.py` y añade el siguiente código:
+
+      ```python
+      from django.http import JsonResponse
+
+      def api_home(request):
+          data = {
+              "message": "Hello, world!"
+          }
+          return JsonResponse(data)
+      ```
+    validate:
+      - "myproject/api/views.py"
+    validation_script: |
+      import re
+      with open('sandbox/04/myproject/api/views.py') as f:
+        content = f.read()
+        assert "def api_home" in content, "No se definió la función 'api_home' en views.py"
+        assert "JsonResponse" in content, "No se está devolviendo una JsonResponse en views.py"
+
+  - step: "Configurar la URL para el endpoint JSON"
+    instructions: |
+      Abre el archivo `myproject/myproject/urls.py` y añade el siguiente código:
+
+      ```python
+      from django.urls import path
+      from api.views import api_home
+
+      urlpatterns = [
+          path('admin/', admin.site.urls),
+          path('api/', api_home),
+      ]
+      ```
+    validate:
+      - "myproject/myproject/urls.py"
+    validation_script: |
+      import re
+      with open('sandbox/04/myproject/myproject/urls.py') as f:
+        content = f.read()
+        assert "path('api/', api_home)" in content, "No se configuró la URL para 'api_home' en urls.py"

@@ -1,0 +1,42 @@
+steps:
+  - step: "Crear la carpeta de trabajo"
+    command: "mkdir sandbox/02 && cd sandbox/02"
+    validate:
+      - ""
+
+  - step: "Crear un nuevo proyecto de Django"
+    command: "django-admin startproject myproject"
+    validate:
+      - "myproject/manage.py"
+      - "myproject/myproject/settings.py"
+
+  - step: "Crear una nueva aplicación llamada 'blog'"
+    command: "cd sandbox/02/myproject && python manage.py startapp blog"
+    validate:
+      - "myproject/blog/models.py"
+      - "myproject/blog/views.py"
+
+  - step: "Definir un modelo 'Post' en la aplicación 'blog'"
+    instructions: |
+      Abre el archivo `myproject/blog/models.py` y añade el siguiente código:
+
+      ```python
+      from django.db import models
+
+      class Post(models.Model):
+          title = models.CharField(max_length=100)
+          content = models.TextField()
+          created_at = models.DateTimeField(auto_now_add=True)
+
+          def __str__(self):
+              return self.title
+      ```
+    validate:
+      - "myproject/blog/models.py"
+    validation_script: |
+      import re
+      with open('sandbox/02/myproject/blog/models.py') as f:
+        content = f.read()
+        assert "class Post" in content, "No se definió la clase 'Post' en models.py"
+        assert "title = models.CharField" in content, "No se definió el campo 'title' en models.py"
+        assert "content = models.TextField" in content, "No se definió el campo 'content' en models.py"

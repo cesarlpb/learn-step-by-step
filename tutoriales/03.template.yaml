@@ -1,0 +1,60 @@
+steps:
+  - step: "Crear la carpeta de trabajo"
+    command: "mkdir sandbox/03 && cd sandbox/03"
+    validate:
+      - ""
+
+  - step: "Crear un nuevo proyecto de Django"
+    command: "django-admin startproject myproject"
+    validate:
+      - "myproject/manage.py"
+      - "myproject/myproject/settings.py"
+
+  - step: "Crear una nueva aplicación llamada 'webapp'"
+    command: "cd sandbox/03/myproject && python manage.py startapp webapp"
+    validate:
+      - "myproject/webapp/models.py"
+      - "myproject/webapp/views.py"
+
+  - step: "Crear una vista que devuelva HTML en 'webapp'"
+    instructions: |
+      Abre el archivo `myproject/webapp/views.py` y añade el siguiente código:
+
+      ```python
+      from django.shortcuts import render
+
+      def home(request):
+          return render(request, 'home.html', {})
+      ```
+    validate:
+      - "myproject/webapp/views.py"
+    validation_script: |
+      import re
+      with open('sandbox/03/myproject/webapp/views.py') as f:
+        content = f.read()
+        assert "def home" in content, "No se definió la función 'home' en views.py"
+        assert "render(request, 'home.html'" in content, "No se está renderizando 'home.html' en views.py"
+
+  - step: "Crear la plantilla HTML 'home.html'"
+    instructions: |
+      Crea un archivo `myproject/webapp/templates/home.html` y añade el siguiente código:
+
+      ```html
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Home</title>
+      </head>
+      <body>
+          <h1>Welcome to the Home Page</h1>
+      </body>
+      </html>
+      ```
+    validate:
+      - "myproject/webapp/templates/home.html"
+    validation_script: |
+      with open('sandbox/03/myproject/webapp/templates/home.html') as f:
+        content = f.read()
+        assert "<h1>Welcome to the Home Page</h1>" in content, "No se encontró el contenido HTML esperado en home.html"
