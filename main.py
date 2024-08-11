@@ -6,6 +6,8 @@ from rich.console import Console
 from rich.text import Text
 
 PROGRESS_FILE = 'progress.json'
+TUTORIALS_PATH = os.getenv('TUTORIALS_PATH', './tutoriales')
+SANDBOX_PATH = os.getenv('SANDBOX_PATH', './sandbox')
 
 def load_tutorial(file_path):
     with open(file_path, 'r') as file:
@@ -64,8 +66,10 @@ def verify_step(step, sandbox_path):
                 print(f"Verificación fallida: El archivo {full_path} no existe.")
                 return False
         if 'validation_script' in step:
+            # Modificación para asegurar la ruta correcta del sandbox en el script de validación
+            script = step['validation_script'].replace('sandbox/01', sandbox_path)
             try:
-                exec(step['validation_script'])
+                exec(script)
                 print("Verificación exitosa.")
                 return True
             except AssertionError as e:
@@ -77,26 +81,43 @@ def verify_step(step, sandbox_path):
         print("No hay pasos de verificación definidos.")
         return True
 
+def list_tutorials():
+    tutorials = []
+    for file_name in os.listdir(TUTORIALS_PATH):
+        if file_name.endswith('.yaml'):
+            tutorials.append(file_name)
+    tutorials.sort()
+    return tutorials
+
+def select_tutorial():
+    tutorials = list_tutorials()
+    print("Selecciona un tutorial:")
+    for idx, tutorial in enumerate(tutorials, start=1):
+        print(f"{idx}. {tutorial}")
+    while True:
+        choice = input("Introduce el número del tutorial: ")
+        if choice.isdigit() and 1 <= int(choice) <= len(tutorials):
+            return tutorials[int(choice) - 1]
+        else:
+            print("Opción no válida, por favor introduce un número válido.")
+
 def main():
-    TUTORIALS_PATH = os.getenv('TUTORIALS_PATH', './tutoriales')
-    SANDBOX_PATH = os.getenv('SANDBOX_PATH', './sandbox')
-    
     display_ascii_art()
     
     progress = load_progress()
     if progress:
         print("Progreso encontrado. ¿Quieres continuar desde donde lo dejaste?")
         print("1. Sí")
-        print("2. No, empezar desde el principio")
+        print("2. No, seleccionar un nuevo tutorial")
         choice = input("Selecciona una opción: ")
         if choice == '1':
             tutorial_file = progress['tutorial_file']
             step_number = progress['step_number']
         else:
-            tutorial_file = '01.django.yaml'
+            tutorial_file = select_tutorial()
             step_number = 1
     else:
-        tutorial_file = '01.django.yaml'
+        tutorial_file = select_tutorial()
         step_number = 1
 
     tutorial_path = os.path.join(TUTORIALS_PATH, tutorial_file)
@@ -137,7 +158,6 @@ def main():
         step_number += 1
 
     print("¡Felicidades! Has completado el tutorial.")
-
     delete_sandbox = input(f"¿Quieres borrar la carpeta de trabajo {sandbox_path}? (y/n): ")
     if delete_sandbox.lower() == 'y':
         shutil.rmtree(sandbox_path)
