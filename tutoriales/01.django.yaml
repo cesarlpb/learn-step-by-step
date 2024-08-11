@@ -1,0 +1,23 @@
+# 01.django.yaml
+steps:
+  - step: "Crear un nuevo proyecto de Django"
+    command: "django-admin startproject myproject"
+    validate:
+      - "myproject/manage.py"
+      - "myproject/myproject/settings.py"
+
+  - step: "Crear una nueva aplicación"
+    command: "python manage.py startapp myapp"
+    validate:
+      - "myproject/myapp/models.py"
+      - "myproject/myapp/views.py"
+
+  - step: "Agregar la aplicación al proyecto"
+    instructions: "Añade 'myapp' a INSTALLED_APPS en myproject/settings.py"
+    validate:
+      - "myproject/myproject/settings.py"
+    validation_script: |
+      import re
+      with open('myproject/myproject/settings.py') as f:
+        content = f.read()
+        assert re.search(r"'myapp'", content), "myapp no se agregó a INSTALLED_APPS"
